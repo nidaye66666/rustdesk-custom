@@ -37,8 +37,8 @@ jobs:
     name: ${{ matrix.job.target }} (${{ matrix.job.os }})
     runs-on: ${{ matrix.job.os }}
     env:
-      RENDEZVOUS_SERVER: ljg.xiaoliya.online
-      RS_PUB_KEY: CBWNPW1XI+mKiMyixlSHBDPuoADnJmin3VdqSHXRTCo=
+      RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
+      RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
     strategy:
       fail-fast: false
       matrix:
@@ -116,17 +116,6 @@ jobs:
             ls -l ./libs/portable/Runner.res;
           fi
 
-      - name: Sign rustdesk files
-        uses: GermanBluefox/code-sign-action@v7
-        if: env.UPLOAD_ARTIFACT == 'true'
-        with:
-          certificate: '${{ secrets.WINDOWS_PFX_BASE64 }}'
-          password: '${{ secrets.WINDOWS_PFX_PASSWORD }}'
-          certificatesha1: '${{ secrets.WINDOWS_PFX_SHA1_THUMBPRINT }}'
-          # certificatename: '${{ secrets.CERTNAME }}'
-          folder: './flutter/build/windows/runner/Release/'
-          recursive: true
-
       - name: Build self-extracted executable
         shell: bash
         if: env.UPLOAD_ARTIFACT == 'true'
@@ -137,41 +126,12 @@ jobs:
           mkdir -p ./SignOutput
           mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.exe
 
-      - name: Sign rustdesk self-extracted file
-        uses: GermanBluefox/code-sign-action@v7
-        if: env.UPLOAD_ARTIFACT == 'true'
+      - name: Upload self-extracted exe
+        uses: actions/upload-artifact@master
         with:
-          certificate: '${{ secrets.WINDOWS_PFX_BASE64 }}'
-          password: '${{ secrets.WINDOWS_PFX_PASSWORD }}'
-          certificatesha1: '${{ secrets.WINDOWS_PFX_SHA1_THUMBPRINT }}'
-          # certificatename: '${{ secrets.WINDOWS_PFX_NAME }}'
-          folder: './SignOutput'
-          recursive: false
+          name: rustdesk-single-exe-${{ matrix.job.arch }}
+          path: ./SignOutput/rustdesk-*.exe
 
-      - name: Publish Release
-        uses: softprops/action-gh-release@v1
-        if: env.UPLOAD_ARTIFACT == 'true'
-        with:
-          prerelease: true
-          tag_name: ${{ env.TAG_NAME }}
-          files: |
-            ./SignOutput/rustdesk-*.exe
-
-  # The fallback for the flutter version, we use Sciter for 32bit Windows.
-  build-for-windows-sciter:
-    name: ${{ matrix.job.target }} (${{ matrix.job.os }})
-    runs-on: ${{ matrix.job.os }}
-    # Temporarily disable this action due to additional test is needed.
-    # if: false 
-    strategy:
-      fail-fast: false
-      matrix:
-        job:
-          # - { target: i686-pc-windows-msvc        , os: windows-2019                  }
-          # - { target: x86_64-pc-windows-gnu       , os: windows-2019                  }
-          - { target: i686-pc-windows-msvc, os: windows-2019, arch: x86 }
-          # - { target: aarch64-pc-windows-msvc, os: windows-2019 }
-    steps:
       - name: Checkout source code
         uses: actions/checkout@v3
 
@@ -275,6 +235,7 @@ jobs:
             ./SignOutput/rustdesk-*.exe
 
   build-for-macOS:
+    if: ${{ false }}
     name: ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-args }}]
     runs-on: ${{ matrix.job.os }}
     strategy:
@@ -407,12 +368,15 @@ jobs:
             rustdesk*-${{ matrix.job.arch }}.dmg
 
   build-vcpkg-deps-linux:
+    if: ${{ false }}
     uses: ./.github/workflows/vcpkg-deps-linux.yml
 
   generate-bridge-linux:
+    if: ${{ false }}
     uses: ./.github/workflows/bridge.yml
 
   build-rustdesk-ios:
+    if: ${{ false }}
     if: ${{ inputs.upload-artifact }}
     needs: [generate-bridge-linux]
     name: build rustdesk ios ipa ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
@@ -504,6 +468,7 @@ jobs:
     
 
   build-rustdesk-android:
+    if: ${{ false }}
     needs: [generate-bridge-linux]
     name: build rustdesk android apk ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
     runs-on: ${{ matrix.job.os }}
@@ -660,6 +625,7 @@ jobs:
             signed-apk/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.apk
 
   build-rustdesk-lib-linux-amd64:
+    if: ${{ false }}
     needs: [generate-bridge-linux, build-vcpkg-deps-linux]
     name: build-rust-lib ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
     runs-on: ${{ matrix.job.os }}
@@ -808,6 +774,7 @@ jobs:
           path: target/release/liblibrustdesk.so
 
   build-rustdesk-lib-linux-arm:
+    if: ${{ false }}
     if: ${{ inputs.upload-artifact }}
     needs: [generate-bridge-linux, build-vcpkg-deps-linux]
     name: build-rust-lib ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
@@ -952,6 +919,7 @@ jobs:
           path: target/release/liblibrustdesk.so
 
   build-rustdesk-sciter-arm:
+    if: ${{ false }}
     if: ${{ inputs.upload-artifact }}
     needs: [build-vcpkg-deps-linux]
     name: build-rustdesk(sciter) ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
@@ -1092,6 +1060,7 @@ jobs:
           path: rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}-sciter.deb
 
   build-rustdesk-linux-arm:
+    if: ${{ false }}
     if: ${{ inputs.upload-artifact }}
     needs: [build-rustdesk-lib-linux-arm]
     name: build-rustdesk ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
@@ -1356,6 +1325,7 @@ jobs:
             /opt/artifacts/rpm/*.rpm
 
   build-rustdesk-linux-amd64:
+    if: ${{ false }}
     needs: [build-rustdesk-lib-linux-amd64]
     name: build-rustdesk ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
     runs-on: ubuntu-20.04
@@ -1634,6 +1604,7 @@ jobs:
   #           flatpak/rustdesk-${{ env.VERSION }}-${{ matrix.job.target }}.flatpak
 
   build-flatpak-amd64:
+    if: ${{ false }}
     name: Build Flatpak
     needs: [build-rustdesk-linux-amd64]
     runs-on: ubuntu-20.04
