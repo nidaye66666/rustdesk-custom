@@ -377,7 +377,6 @@ jobs:
 
   build-rustdesk-ios:
     if: ${{ false }}
-    if: ${{ inputs.upload-artifact }}
     needs: [generate-bridge-linux]
     name: build rustdesk ios ipa ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
     runs-on: ${{ matrix.job.os }}
@@ -775,7 +774,6 @@ jobs:
 
   build-rustdesk-lib-linux-arm:
     if: ${{ false }}
-    if: ${{ inputs.upload-artifact }}
     needs: [generate-bridge-linux, build-vcpkg-deps-linux]
     name: build-rust-lib ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
     runs-on: [self-hosted, Linux, ARM64]
@@ -920,7 +918,6 @@ jobs:
 
   build-rustdesk-sciter-arm:
     if: ${{ false }}
-    if: ${{ inputs.upload-artifact }}
     needs: [build-vcpkg-deps-linux]
     name: build-rustdesk(sciter) ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
     runs-on: [self-hosted, Linux, ARM64]
@@ -1061,7 +1058,6 @@ jobs:
 
   build-rustdesk-linux-arm:
     if: ${{ false }}
-    if: ${{ inputs.upload-artifact }}
     needs: [build-rustdesk-lib-linux-arm]
     name: build-rustdesk ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
     runs-on: ubuntu-20.04 # 20.04 has more performance on arm build
